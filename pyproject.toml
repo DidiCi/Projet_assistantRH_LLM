@@ -1,0 +1,16 @@
+[project]
+name = "project-rh"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "docling>=2.51.0",
+    "langchain>=0.3.27",
+    "llama-index>=0.12.52",
+    "matplotlib>=3.10.6",
+    "numpy>=2.3.2",
+    "pandas>=2.3.2",
+    "seaborn>=0.13.2",
+    "unstructured>=0.18.14",
+]
