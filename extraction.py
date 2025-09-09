@@ -20,7 +20,7 @@ load_dotenv()
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
 
 ######################## Dossiers
-folder_path = "/home/jip.wulffele@Digital-Grenoble.local/Documents/15_LLM/project_llm/CVthèque_small/"
+folder_path = "/home/jip.wulffele@Digital-Grenoble.local/Documents/15_LLM/project_llm/CVthèque/"
 
 chuncks_out = "cv_chunks.json"
 
@@ -92,12 +92,15 @@ def get_chunks(split_by_header=False):
 
             # Sauvegarder avec métadonnées
             for chunk in chunks:
-                all_chunks.append({
-                    "text": chunk if isinstance(chunk, str) else chunk.page_content,
-                    "source": filename,
-                    "first_name": first,
-                    "last_name": last
-                })
+                text = chunk if isinstance(chunk, str) else chunk.page_content
+                # Skip image placeholders or empty chunks
+                if text.strip() and text.strip() != "<!-- image -->":
+                    all_chunks.append({
+                        "text": chunk if isinstance(chunk, str) else chunk.page_content,
+                        "source": filename,
+                        "first_name": first,
+                        "last_name": last
+                    })
 
     print(f"{len(all_chunks)} chunks extraits depuis {len(os.listdir(folder_path))} PDFs.")
 
