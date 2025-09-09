@@ -22,9 +22,9 @@ GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
 ######################## Dossiers
 folder_path = "/home/jip.wulffele@Digital-Grenoble.local/Documents/15_LLM/project_llm/CVthèque/"
 
-chuncks_out = "cv_chunks.json"
+chuncks_out = "cv_chunks_by_header.json"
 
-folder_chroma = "chroma_db"
+folder_chroma = "chroma_db_by_header"
 collection_chroma = "cv_collection"
 
 ######################## Hyperparameters
@@ -33,31 +33,15 @@ CHUNK_OVERLAP = 100
 
 IMAGE_RESOLUTION_SCALE = 2.0
 
-SPLIT_BY_HEADER = True
+SPLIT_BY_HEADER = False
+ONE_CHUNK_CV = False
 
 MODEL_EMBEDDINGS = "models/embedding-001"
 
 ######################## Functions
 
-def get_chunks(split_by_header=False):
+def get_chunks(split_by_header=False, one_chunk_cv=False):
 
-    if split_by_header == True:
-        # Initialiser le chunker
-        text_splitter = MarkdownHeaderTextSplitter(
-            headers_to_split_on=[
-                ("#", "title"),
-                ("##", "section"),
-                #("###", "subsection")
-            ],
-            return_each_line=False,
-            strip_headers=False
-        )
-    else:
-        # Initialiser le chunker
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=CHUNK_SIZE,
-            chunk_overlap=CHUNK_OVERLAP
-        )
 
     # Initialiser Docling
     pipeline_options = PdfPipelineOptions()
@@ -84,25 +68,53 @@ def get_chunks(split_by_header=False):
             extract_images(doc, filename) 
             full_text = doc.document.export_to_markdown()  # Markdown = + lisible que du brut
 
-            # Découper en chunks
-            chunks = text_splitter.split_text(full_text)
-
             # Get nom + prenom
             first, last = parse_name(filename)
 
-            # Sauvegarder avec métadonnées
-            for chunk in chunks:
-                text = chunk if isinstance(chunk, str) else chunk.page_content
-                # Skip image placeholders or empty chunks
-                if text.strip() and text.strip() != "<!-- image -->":
-                    all_chunks.append({
-                        "text": chunk if isinstance(chunk, str) else chunk.page_content,
-                        "source": filename,
-                        "first_name": first,
-                        "last_name": last
-                    })
+            if one_chunk_cv == True:
+                # ✅ Sauvegarder 1 CV complet comme un seul chunk
+                all_chunks.append({
+                    "text": full_text.strip(),
+                    "source": filename,
+                    "first_name": first,
+                    "last_name": last
+                })
+            else:
 
-    print(f"{len(all_chunks)} chunks extraits depuis {len(os.listdir(folder_path))} PDFs.")
+                if split_by_header == True:
+                    # Initialiser le chunker
+                    text_splitter = MarkdownHeaderTextSplitter(
+                        headers_to_split_on=[
+                            ("#", "title"),
+                            ("##", "section"),
+                            #("###", "subsection")
+                        ],
+                        return_each_line=False,
+                        strip_headers=False
+                    )
+                else:
+                    # Initialiser le chunker
+                    text_splitter = RecursiveCharacterTextSplitter(
+                        chunk_size=CHUNK_SIZE,
+                        chunk_overlap=CHUNK_OVERLAP
+                    )
+
+                # Découper en chunks
+                chunks = text_splitter.split_text(full_text)
+
+                # Sauvegarder avec métadonnées
+                for chunk in chunks:
+                    text = chunk if isinstance(chunk, str) else chunk.page_content
+                    # Skip image placeholders or empty chunks
+                    if text.strip() and text.strip() != "<!-- image -->":
+                        all_chunks.append({
+                            "text": chunk if isinstance(chunk, str) else chunk.page_content,
+                            "source": filename,
+                            "first_name": first,
+                            "last_name": last
+                        })
+
+    print(f"{len(all_chunks)} chunks extraits depuis {len(os.listdir(folder_path))} files.")
 
     return all_chunks
 
@@ -152,7 +164,13 @@ def create_vectorstore(all_chunks):
     )
 
     texts = [chunk["text"] for chunk in all_chunks]
-    metadatas = [{"source": chunk["source"]} for chunk in all_chunks]
+    metadatas = [
+        {
+            "source": chunk["source"],
+            "first_name": chunk["first_name"],
+            "last_name": chunk["last_name"]
+        }
+        for chunk in all_chunks]
 
     vectorstore.add_texts(texts=texts, metadatas=metadatas) # Emdeeing applied at this step
 
@@ -160,7 +178,7 @@ def create_vectorstore(all_chunks):
 
 
 def main():
-    all_chunks = get_chunks(split_by_header=SPLIT_BY_HEADER)
+    all_chunks = get_chunks(split_by_header=SPLIT_BY_HEADER, one_chunk_cv=ONE_CHUNK_CV)
     save_chunks(all_chunks)
 
     create_vectorstore(all_chunks)

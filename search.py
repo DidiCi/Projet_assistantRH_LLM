@@ -12,19 +12,21 @@ load_dotenv()
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
 
 ######################## Dossiers
-persist_directory = "/home/jip.wulffele@Digital-Grenoble.local/Documents/15_LLM/project_llm/CVthèque/chroma_db_by_size"
+persist_directory = "/home/jip.wulffele@Digital-Grenoble.local/Documents/15_LLM/project_llm/CVthèque/chroma_db_one_cv"
 collection_chroma = "cv_collection"
 
 ######################## Hyperparameters
 MODEL_EMBEDDINGS = "models/embedding-001"
+LAMBDA_MULT = 0.2
 
 query = "Qui aime joue des jeux vidéo en équipe?"
 query = "Qui est Ingénieur Agronome"
-K = 10
+query = "Est ce que Jip parle Anglais?"
+K = 3
 
 ######################## Functions
 
-def get_similair_vectos(query):
+def search_cvs(query, K=K, LAMBDA_MULT=LAMBDA_MULT, last_name=None,):
     embeddings = GoogleGenerativeAIEmbeddings(model=MODEL_EMBEDDINGS)
 
     vectorstore = Chroma(
@@ -34,17 +36,30 @@ def get_similair_vectos(query):
     )
 
 
-    retriever = vectorstore.as_retriever(
-        search_type="mmr",  # diverse and relevant results
-        search_kwargs={'k': K, 'lambda_mult': 0.5}
-    )
+    if last_name:
+        retriever = vectorstore.as_retriever(
+            search_type="mmr",  # diverse and relevant results
+            search_kwargs={
+                'k': K, 
+                'lambda_mult': LAMBDA_MULT,
+                'filter': {'last_name':last_name}
+                }
+        )
+    else:
+        retriever = vectorstore.as_retriever(
+            search_type="mmr",  # diverse and relevant results
+            search_kwargs={
+                'k': K, 
+                'lambda_mult': LAMBDA_MULT,
+                }
+        )
 
     results = retriever.invoke(query)
 
     return results
 
 def main(query):
-    results = get_similair_vectos(query)
+    results = search_cvs(query)
     return results
 
 ######################## Main
