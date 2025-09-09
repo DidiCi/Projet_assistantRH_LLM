@@ -105,7 +105,7 @@ def get_chunks(split_by_header=False):
 
 
 def extract_images(doc, filename):
-    images_folder = Path("cv_images") / filename
+    images_folder = Path(os.path.join(folder_path, "cv_images")) / filename
     images_folder.mkdir(parents=True, exist_ok=True)
 
     if hasattr(doc.document, "pictures"):
