@@ -31,7 +31,7 @@ collection_chroma = "cv_collection"
 MODEL_EMBEDDINGS = "mistral-embed"
 
 LAMBDA_MULT = 0.2
-K = 10
+K = 5
 
 # Modèle léger
 #LLM = ChatGoogleGenerativeAI(model="gemini-1.5-flash-lite", temperature=0) # ran out of quota
