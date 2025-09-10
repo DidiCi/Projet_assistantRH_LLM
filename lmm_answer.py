@@ -23,8 +23,6 @@ LANGFUSE_PUBLIC_KEY = os.environ.get("LANGFUSE_PUBLIC_KEY")
 LANGFUSE_HOST = os.environ.get("LANGFUSE_HOST")
 
 ######################## Dossiers
-folder_path = "/home/jip.wulffele@Digital-Grenoble.local/Documents/15_LLM/project_llm/CVthèque/"
-
 persist_directory = "/home/jip.wulffele@Digital-Grenoble.local/Documents/15_LLM/project_llm/CVthèque/chroma_db_by_header_mistral"
 collection_chroma = "cv_collection"
 
@@ -36,30 +34,34 @@ LAMBDA_MULT = 0.2
 K = 10
 
 # Modèle léger
-#llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash-lite", temperature=0) # ran out of quota
-llm = ChatMistralAI(model="mistral-tiny", temperature=0)
+#LLM = ChatGoogleGenerativeAI(model="gemini-1.5-flash-lite", temperature=0) # ran out of quota
+LLM = ChatMistralAI(model="mistral-tiny", temperature=0)
 
-# Meta-prompt 
-RAG_PROMPT = ChatPromptTemplate.from_messages([
-    ("system", 
-        "Tu es un assistant RH. "
-        "Tu disposes de CVs convertis en texte. "
-        "Chaque extrait de CV contient aussi des métadonnées : prénom (`first_name`), nom (`last_name`) et source du fichier. "
-        "Lorsque tu présentes une information, indique clairement à quel candidat elle appartient "
-        "(exemple : 'Martin Dupont a 5 ans d'expérience en Python'). "
-        "Utilise uniquement les informations fournies dans les CV. "
-        "Si tu ne sais pas, réponds que tu ne sais pas. "
-        "Sois concis, factuel et professionnel."),
-        ("human", 
-        "Question : {question}\n\n"
-        "CVs pertinents :\n{context}")
-    ])
 
 ######################## Functions
 
-def search_cvs(query, K=K, LAMBDA_MULT=LAMBDA_MULT, last_name=None,):
+def get_rag_prompt():
+    # Meta-prompt 
+    rag_prompt = ChatPromptTemplate.from_messages([
+        ("system", 
+            "Tu es un assistant RH. "
+            "Tu disposes de CVs convertis en texte. "
+            "Chaque extrait de CV contient aussi des métadonnées : prénom (`first_name`), nom (`last_name`) et source du fichier. "
+            "Lorsque tu présentes une information, indique clairement à quel candidat elle appartient "
+            "(exemple : 'Martin Dupont a 5 ans d'expérience en Python'). "
+            "Utilise uniquement les informations fournies dans les CV. "
+            "Si tu ne sais pas, réponds que tu ne sais pas. "
+            "Sois concis, factuel et professionnel."),
+            ("human", 
+            "Question : {question}\n\n"
+            "CVs pertinents :\n{context}")
+        ])
+    return rag_prompt
+
+
+def search_cvs(query, model_embeddings, persist_directory, collection_chroma, k=5, lambda_mult=0.5, last_name=None):
     #embeddings = GoogleGenerativeAIEmbeddings(model=MODEL_EMBEDDINGS)
-    embeddings = MistralAIEmbeddings(model=MODEL_EMBEDDINGS)
+    embeddings = MistralAIEmbeddings(model=model_embeddings)
     vectorstore = Chroma(
         collection_name=collection_chroma,
         embedding_function=embeddings,
@@ -71,8 +73,8 @@ def search_cvs(query, K=K, LAMBDA_MULT=LAMBDA_MULT, last_name=None,):
         retriever = vectorstore.as_retriever(
             search_type="mmr",  # diverse and relevant results
             search_kwargs={
-                'k': K, 
-                'lambda_mult': LAMBDA_MULT,
+                'k': k, 
+                'lambda_mult': lambda_mult,
                 'filter': {'last_name':last_name}
                 }
         )
@@ -80,8 +82,8 @@ def search_cvs(query, K=K, LAMBDA_MULT=LAMBDA_MULT, last_name=None,):
         retriever = vectorstore.as_retriever(
             search_type="mmr",  # diverse and relevant results
             search_kwargs={
-                'k': K, 
-                'lambda_mult': LAMBDA_MULT,
+                'k': k, 
+                'lambda_mult': lambda_mult,
                 }
         )
 
@@ -98,24 +100,24 @@ def ask_user_for_person():
     return None
 
 
-def answer_query(query, results, callbacks=None):
+def answer_query(llm, query, results, rag_prompt, callbacks=None):
     context = "\n\n".join(
         f"CV : {doc.metadata.get('first_name', '')} {doc.metadata.get('last_name', '')}\n{doc.page_content}"
         for doc in results
     )
-    prompt = RAG_PROMPT.format(question=query, context=context)
+    prompt = rag_prompt.format(question=query, context=context)
     
     response = llm.invoke(prompt, config={"callbacks": callbacks or []})
     return response.content
 
 
-def rag_pipeline():
+def rag_pipeline(k, lambda_mult, model_embeddings, rag_prompt, llm, persist_directory, collection_chroma):
     nom_filtre = ask_user_for_person()
     question = input("Posez votre question : ")
-    results = search_cvs(question,  K=K, LAMBDA_MULT=LAMBDA_MULT, last_name=nom_filtre)
+    results = search_cvs(question,  model_embeddings, persist_directory, collection_chroma, k=k, lambda_mult=lambda_mult, last_name=nom_filtre)
 
     langfuse_handler = CallbackHandler()
-    reponse = answer_query(question, results, callbacks=[langfuse_handler])
+    reponse = answer_query(llm, question, results, rag_prompt, callbacks=[langfuse_handler])
     print("\n--- Réponse ---\n")
     print(reponse)
     print("\n--- RAG results ---\n")
@@ -123,4 +125,5 @@ def rag_pipeline():
 
 
 if __name__ == "__main__":
-    rag_pipeline()
+    rag_prompt = get_rag_prompt()
+    rag_pipeline(K, LAMBDA_MULT, MODEL_EMBEDDINGS, rag_prompt, LLM, persist_directory, collection_chroma)
