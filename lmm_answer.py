@@ -8,24 +8,36 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_chroma import Chroma
 
+from langchain_mistralai import ChatMistralAI
+from langchain_mistralai import MistralAIEmbeddings
+from langfuse.langchain import CallbackHandler
+
+
 ######################## Charger les variables d'environnement
 load_dotenv()
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
+MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
+
+LANGFUSE_SECRET_KEY = os.environ.get("LANGFUSE_SECRET_KEY")
+LANGFUSE_PUBLIC_KEY = os.environ.get("LANGFUSE_PUBLIC_KEY")
+LANGFUSE_HOST = os.environ.get("LANGFUSE_HOST")
 
 ######################## Dossiers
 folder_path = "/home/jip.wulffele@Digital-Grenoble.local/Documents/15_LLM/project_llm/CVthèque/"
 
-persist_directory = "/home/jip.wulffele@Digital-Grenoble.local/Documents/15_LLM/project_llm/CVthèque/chroma_db_by_header"
+persist_directory = "/home/jip.wulffele@Digital-Grenoble.local/Documents/15_LLM/project_llm/CVthèque/chroma_db_by_header_mistral"
 collection_chroma = "cv_collection"
 
 ######################## Hyperparameters
-MODEL_EMBEDDINGS = "models/embedding-001"
+#MODEL_EMBEDDINGS = "models/embedding-001"
+MODEL_EMBEDDINGS = "mistral-embed"
 
 LAMBDA_MULT = 0.2
 K = 10
 
 # Modèle léger
-llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0)
+#llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash-lite", temperature=0) # ran out of quota
+llm = ChatMistralAI(model="mistral-tiny", temperature=0)
 
 # Meta-prompt 
 RAG_PROMPT = ChatPromptTemplate.from_messages([
@@ -46,8 +58,8 @@ RAG_PROMPT = ChatPromptTemplate.from_messages([
 ######################## Functions
 
 def search_cvs(query, K=K, LAMBDA_MULT=LAMBDA_MULT, last_name=None,):
-    embeddings = GoogleGenerativeAIEmbeddings(model=MODEL_EMBEDDINGS)
-
+    #embeddings = GoogleGenerativeAIEmbeddings(model=MODEL_EMBEDDINGS)
+    embeddings = MistralAIEmbeddings(model=MODEL_EMBEDDINGS)
     vectorstore = Chroma(
         collection_name=collection_chroma,
         embedding_function=embeddings,

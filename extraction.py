@@ -12,19 +12,21 @@ from docling.datamodel.pipeline_options import PdfPipelineOptions
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling_core.types.doc import ImageRefMode, PictureItem, TableItem
 
+from langchain_mistralai import MistralAIEmbeddings
 
 from pathlib import Path
 
 ######################## Charger les variables d'environnement
 load_dotenv()
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
+MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
 
 ######################## Dossiers
 folder_path = "/home/jip.wulffele@Digital-Grenoble.local/Documents/15_LLM/project_llm/CVthèque/"
 
-chuncks_out = "cv_chunks_by_header.json"
+chuncks_out = "cv_chunks_by_header_mistral.json"
 
-folder_chroma = "chroma_db_by_header"
+folder_chroma = "chroma_db_by_header_mistral"
 collection_chroma = "cv_collection"
 
 ######################## Hyperparameters
@@ -33,10 +35,11 @@ CHUNK_OVERLAP = 100
 
 IMAGE_RESOLUTION_SCALE = 2.0
 
-SPLIT_BY_HEADER = False
+SPLIT_BY_HEADER = True
 ONE_CHUNK_CV = False
 
-MODEL_EMBEDDINGS = "models/embedding-001"
+#MODEL_EMBEDDINGS = "models/embedding-001"
+MODEL_EMBEDDINGS = "mistral-embed"
 
 ######################## Functions
 
@@ -152,7 +155,8 @@ def save_chunks(all_chunks):
 
 def create_vectorstore(all_chunks):
     # Embeddings avec Gemini
-    embeddings = GoogleGenerativeAIEmbeddings(model=MODEL_EMBEDDINGS)
+    #embeddings = GoogleGenerativeAIEmbeddings(model=MODEL_EMBEDDINGS)
+    embeddings = MistralAIEmbeddings(model=MODEL_EMBEDDINGS)
 
     # Chroma local
     persist_directory = os.path.join(folder_path, folder_chroma)
