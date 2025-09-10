@@ -1,0 +1,23 @@
+[
+  {
+    "query": "Ronan a-t-il un chien ?",
+    "ground_truth": "Je ne sais pas, Ronan Poncet n'a pas de données concernant un chien dans son CV."
+  },
+  {
+    "query": "Dans quelles universités ou écoles Jip et Estelle ont-ils fait leurs études ?",
+    "ground_truth": "Estelle: Licence Développement Informatique (Université Savoie Mont Blanc), Master Développement Informatique (Université Savoie Mont Blanc), Formation Data Scientist (Campus Numérique in The Alps, Grenoble, en cours). Jip: Licence Biologie (Vrije Universiteit Amsterdam), Master Sciences Biomoléculaires (Vrije Universiteit Amsterdam), Doctorat Biochimie (Université Grenoble Alpes), Formation Data Scientist (Campus Numérique in The Alps, en cours)."
+  },
+  {
+    "query": "Fais-moi une liste de toutes les personnes qui parlent arabe.",
+    "ground_truth": "Mohamad ALACHTAR, Jamila OBEID"
+  },
+  {"query": "Qu'est-ce que Thomas aime faire pendant son temps libre ?",
+   "ground_truth": "Thomas aime faire de la randonnée, de l’escalade, jouer dans une fanfare et rencontrer des gens passionnés et intéressants."
+  },
+  {"query": "Fais-moi une liste de toutes les candidates (femmes) mentionnées dans les CVs en indiquant leur prénom.",
+   "ground_truth": "Véronique, Jamila, Nouhaila, Pauline, Marie, Jip, Estelle, Laëtitia, Diletta, Nathalie"
+  },
+  {"query": "Qui est le ou la candidate le plus jeune parmi les CVs ? S’il y a plusieurs candidats du même âge, retourne la liste complète.",
+   "ground_truth": "Pauline FAURE et Nathalie FABRE-PARRAS"
+  }
+]

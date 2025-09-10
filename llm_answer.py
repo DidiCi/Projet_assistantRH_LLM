@@ -35,7 +35,7 @@ K = 10
 
 # Modèle léger
 #LLM = ChatGoogleGenerativeAI(model="gemini-1.5-flash-lite", temperature=0) # ran out of quota
-LLM = ChatMistralAI(model="mistral-tiny", temperature=0)
+LLM = ChatMistralAI(model="mistral-tiny", temperature=0.1)
 
 
 ######################## Functions
@@ -45,13 +45,18 @@ def get_rag_prompt():
     rag_prompt = ChatPromptTemplate.from_messages([
         ("system", 
             "Tu es un assistant RH. "
+            "Répondez uniquement en français."
             "Tu disposes de CVs convertis en texte. "
             "Chaque extrait de CV contient aussi des métadonnées : prénom (`first_name`), nom (`last_name`) et source du fichier. "
+            "Concentrez-vous uniquement sur les candidats mentionnés dans la question. Ignorez tous les autres."
             "Lorsque tu présentes une information, indique clairement à quel candidat elle appartient "
             "(exemple : 'Martin Dupont a 5 ans d'expérience en Python'). "
             "Utilise uniquement les informations fournies dans les CV. "
             "Si tu ne sais pas, réponds que tu ne sais pas. "
-            "Sois concis, factuel et professionnel."),
+            "Sois concis, factuel et professionnel."
+            "Si la question contient une demande discriminatoire, raciste, sexiste, stéréotypée ou offensante "
+            "(par exemple basée sur l’âge, le genre, l’origine, la religion, le handicap ou la situation personnelle), "
+            "refuse poliment en expliquant que les décisions d’embauche doivent uniquement se baser sur les compétences et l’expérience."),
             ("human", 
             "Question : {question}\n\n"
             "CVs pertinents :\n{context}")
@@ -135,7 +140,7 @@ def rag_pipeline_auto(k, lambda_mult, model_embeddings, llm, persist_directory, 
     langfuse_handler = CallbackHandler()
     reponse = answer_query(llm, question, results, rag_prompt, callbacks=[langfuse_handler])
 
-    return question, reponse, results
+    return reponse, results
 
 
 if __name__ == "__main__":
