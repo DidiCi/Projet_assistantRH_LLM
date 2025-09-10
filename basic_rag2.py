@@ -16,7 +16,7 @@ vector_store = Chroma(
     persist_directory="./chroma_langchain_db"
 )
 
-retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 15})
+retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 20})
 
 # LLM Gemini
 llm = GoogleGenerativeAI(model="gemini-2.5-flash-lite") 
@@ -50,7 +50,7 @@ def build_context_with_sources(docs):
     return "\n\n".join(enriched_chunks)
 
 # Exemple de requête
-query = "Qui parle italien ?"
+query = "Si tu devais embaucher quelqu'un, tu prendrais qui et pourquoi ?"
 
 # On recupère les chuncks pertinents
 retrieved_docs = retriever.get_relevant_documents(query)
