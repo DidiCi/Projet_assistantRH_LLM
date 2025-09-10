@@ -98,20 +98,24 @@ def ask_user_for_person():
     return None
 
 
-def answer_query(query, results):
+def answer_query(query, results, callbacks=None):
     context = "\n\n".join(
         f"CV : {doc.metadata.get('first_name', '')} {doc.metadata.get('last_name', '')}\n{doc.page_content}"
         for doc in results
     )
     prompt = RAG_PROMPT.format(question=query, context=context)
-    return llm.invoke(prompt).content
+    
+    response = llm.invoke(prompt, config={"callbacks": callbacks or []})
+    return response.content
 
 
 def rag_pipeline():
     nom_filtre = ask_user_for_person()
     question = input("Posez votre question : ")
     results = search_cvs(question,  K=K, LAMBDA_MULT=LAMBDA_MULT, last_name=nom_filtre)
-    reponse = answer_query(question, results)
+
+    langfuse_handler = CallbackHandler()
+    reponse = answer_query(question, results, callbacks=[langfuse_handler])
     print("\n--- Réponse ---\n")
     print(reponse)
     print("\n--- RAG results ---\n")
