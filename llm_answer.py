@@ -111,11 +111,12 @@ def answer_query(llm, query, results, rag_prompt, callbacks=None):
     return response.content
 
 
-def rag_pipeline(k, lambda_mult, model_embeddings, rag_prompt, llm, persist_directory, collection_chroma):
+def rag_pipeline(k, lambda_mult, model_embeddings, llm, persist_directory, collection_chroma):
     nom_filtre = ask_user_for_person()
     question = input("Posez votre question : ")
     results = search_cvs(question,  model_embeddings, persist_directory, collection_chroma, k=k, lambda_mult=lambda_mult, last_name=nom_filtre)
-
+    
+    rag_prompt = get_rag_prompt()
     langfuse_handler = CallbackHandler()
     reponse = answer_query(llm, question, results, rag_prompt, callbacks=[langfuse_handler])
     print("\n--- Réponse ---\n")
@@ -123,7 +124,20 @@ def rag_pipeline(k, lambda_mult, model_embeddings, rag_prompt, llm, persist_dire
     print("\n--- RAG results ---\n")
     print(results)
 
+    return question, reponse, results
+
+
+def rag_pipeline_auto(k, lambda_mult, model_embeddings, llm, persist_directory, collection_chroma, nom_filtre, question):
+
+    results = search_cvs(question,  model_embeddings, persist_directory, collection_chroma, k=k, lambda_mult=lambda_mult, last_name=nom_filtre)
+    
+    rag_prompt = get_rag_prompt()
+    langfuse_handler = CallbackHandler()
+    reponse = answer_query(llm, question, results, rag_prompt, callbacks=[langfuse_handler])
+
+    return question, reponse, results
+
 
 if __name__ == "__main__":
-    rag_prompt = get_rag_prompt()
-    rag_pipeline(K, LAMBDA_MULT, MODEL_EMBEDDINGS, rag_prompt, LLM, persist_directory, collection_chroma)
+    
+    question, reponse, results = rag_pipeline(K, LAMBDA_MULT, MODEL_EMBEDDINGS, LLM, persist_directory, collection_chroma)
