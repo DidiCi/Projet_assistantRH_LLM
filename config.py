@@ -16,5 +16,5 @@ class AppConfig:
     llm_model: str = "mistral-tiny"
     llm_temperature: float = 0.3
 
-    k: int = 5
+    k: int = 10
     lambda_mult: float = 0.2
