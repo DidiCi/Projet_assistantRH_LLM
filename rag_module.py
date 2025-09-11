@@ -3,10 +3,12 @@ from langchain_mistralai import ChatMistralAI
 from langfuse.langchain import CallbackHandler
 
 class RAGPipeline:
-    def __init__(self, config, vectorstore):
+    def __init__(self, config, vectorstore, mistral_key=None):
         self.config = config
         self.vectorstore = vectorstore # Instance of VectorstoreManager
-        self.llm = ChatMistralAI(model=config.llm_model, temperature=config.llm_temperature)
+        self.llm = ChatMistralAI(model=config.llm_model,
+                                temperature=config.llm_temperature,
+                                api_key=mistral_key)
 
     def _get_prompt(self):
         return ChatPromptTemplate.from_messages([

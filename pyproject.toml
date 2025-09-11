@@ -12,5 +12,6 @@ dependencies = [
     "numpy>=2.3.2",
     "pandas>=2.3.2",
     "seaborn>=0.13.2",
+    "streamlit>=1.49.1",
     "unstructured>=0.18.14",
 ]

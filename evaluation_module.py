@@ -2,8 +2,10 @@ from langchain_mistralai import ChatMistralAI
 from langchain_core.prompts import ChatPromptTemplate
 
 class Evaluator:
-    def __init__(self, config):
-        self.llm = ChatMistralAI(model=config.llm_model, temperature=config.llm_temperature)
+    def __init__(self, config, mistral_key=None):
+        self.llm = ChatMistralAI(model=config.llm_model, 
+                                 temperature=config.llm_temperature,
+                                 api_key=mistral_key)
 
     def _run(self, template, **kwargs):
         chain = template | self.llm

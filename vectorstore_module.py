@@ -2,9 +2,10 @@ from langchain_chroma import Chroma
 from langchain_mistralai import MistralAIEmbeddings
 
 class VectorStoreManager:
-    def __init__(self, config, persist_directory=None, create_new=False):
+    def __init__(self, config, persist_directory=None, create_new=False, mistral_key=None):
         self.config = config
-        self.embeddings = MistralAIEmbeddings(model=config.model_embeddings)
+        self.embeddings = MistralAIEmbeddings(model=config.model_embeddings,
+                                              api_key=mistral_key)
 
         self.persist_directory = persist_directory or config.persist_directory
 
