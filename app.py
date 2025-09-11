@@ -7,7 +7,9 @@ from evaluation_module import Evaluator
 
 import pandas as pd
 import matplotlib.pyplot as plt
+
 from utils import safe_parse
+from utils import donut_chart
 
 # -------------------------------
 # 1. App Config & Initialization
@@ -156,20 +158,28 @@ if "answer" in st.session_state and "results" in st.session_state:
         display_as_graph = st.radio("Mode d’affichage", ["Texte", "Graphique"], horizontal=True)
 
         if display_as_graph == "Graphique":
-            df = pd.DataFrame.from_dict(scores, orient="index", columns=["Score"])
-            fig, ax = plt.subplots()
-            df["Score"].plot(kind="bar", ax=ax, color="skyblue")
-            ax.set_ylim(0, 5)
-            ax.set_ylabel("Score")
-            ax.set_xlabel("Metric")
-            ax.set_title("Évaluations des réponses")
+            scores = eval_data["scores"]
 
-            for i, v in enumerate(df["Score"]):
-                ax.text(i, v + 0.1, f"{v:.1f}", ha="center", fontweight="bold")
+            # Colors for metrics
+            colors = {
+                "Overall": "#4CAF50",       
+                "Faithfulness": "#2196F3",  
+                "Bias": "#2196F3",
+                "Semantic": "#2196F3",      
+                "Context": "#2196F3",       
+            }
 
-            st.pyplot(fig)
-            st.metric("Score global moyen", f"{scores['Overall']:.2f}/5")
+            st.subheader("📊 Scores")
 
+            # Layout: Overall (bigger) + rest (smaller)
+            metrics = ["Overall"] + [k for k in scores.keys() if k != "Overall"]
+            cols = st.columns(len(metrics))
+
+            for col, metric in zip(cols, metrics):
+                with col:
+                    fig = donut_chart(scores[metric], metric, colors.get(metric, "skyblue"), size=(2.5, 2.5))
+                    st.pyplot(fig)
+                    
         else:  # JSON mode
             if eval_data["semantic"]:
                 st.json({
