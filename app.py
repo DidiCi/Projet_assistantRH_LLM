@@ -100,9 +100,11 @@ if query:
         with st.spinner("Évaluation de la réponse..."):
             faithfulness = evaluator.eval_faithfulness(query, answer, results)
             bias = evaluator.eval_bias(query, answer)
+            context = evaluator.eval_context(query, results)
 
         st.subheader("📊 Évaluations")
         st.json({
             "Faithfulness": faithfulness.content,
-            "Bias": bias.content
+            "Bias": bias.content,
+            "Context": context.content,
         })

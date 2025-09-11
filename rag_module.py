@@ -25,7 +25,8 @@ class RAGPipeline:
                 "Sois concis, factuel et professionnel."
                 "Si la question contient une demande discriminatoire, raciste, sexiste, stéréotypée ou offensante "
                 "(par exemple basée sur l’âge, le genre, l’origine, la religion, le handicap ou la situation personnelle), "
-                "refuse poliment en expliquant que les décisions d’embauche doivent uniquement se baser sur les compétences et l’expérience."),
+                "refuse poliment en expliquant que les décisions d’embauche doivent uniquement se baser sur les compétences et l’expérience."
+                ),
                 ("human", 
                 "Question : {question}\n\n"
                 "CVs pertinents :\n{context}")
