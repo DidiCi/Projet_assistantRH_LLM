@@ -57,11 +57,7 @@ class Evaluator:
 
             Répondez uniquement en français.
             Répondez strictement en JSON :
-            {{
-                "question_score": <int>,
-                "answer_score": <int>,
-                "explanation": "<string>"
-            }}
+            {{"question_score": <int>, "answer_score": <int>, "explanation": "<string>"}}
             """)
         return self._run(prompt, query=query, answer=answer)
     
