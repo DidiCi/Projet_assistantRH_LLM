@@ -5,6 +5,8 @@ from vectorstore_module import VectorStoreManager
 from rag_module import RAGPipeline
 from evaluation_module import Evaluator
 
+from langchain_mistralai import ChatMistralAI
+
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -20,7 +22,7 @@ st.title("📄 Assistant RH - CV RAG")
 # -------------------------------
 # 2. Sidebar: Mistral key
 # -------------------------------
-st.sidebar.header("⚙️ Paramètres Mistral")
+st.sidebar.header("🔑 Authentification")
 mistral_key = st.sidebar.text_input(
     "Mistral API Key",
     type="password",
@@ -29,8 +31,18 @@ mistral_key = st.sidebar.text_input(
 if not mistral_key:
     st.warning("Veuillez entrer votre clé API Mistral pour continuer.")
     st.stop() 
-if "mistral_key" not in st.session_state:
-    st.session_state["mistral_key"] = mistral_key
+
+try:
+    llm = ChatMistralAI(model="mistral-tiny", 
+                        temperature=0,
+                        api_key=mistral_key)
+    llm.invoke("Dis simplement 'OK' si la clé est valide.")
+except Exception as e:
+    st.sidebar.error(f"❌ Clé invalide ou problème de connexion.\n\n{e}")
+    st.stop() 
+
+st.session_state["mistral_key"] = mistral_key
+st.sidebar.success("✅ Clé API Mistral valide")
 
 # -------------------------------
 # 2. Sidebar: General parameters
@@ -39,7 +51,6 @@ st.sidebar.header("⚙️ Paramètres")
 filter_lastname = st.sidebar.text_input("Filtrer par nom de famille (optionnel)")
 evaluate_answers = st.sidebar.checkbox("Évaluer la réponse", value=True)
 
-st.sidebar.header("⚙️ Paramètres de la base de données")
 db_mode = st.sidebar.radio(
     "Mode de la base de données",
     ("Connecter à une base existante", "Créer une nouvelle base")
@@ -179,7 +190,7 @@ if "answer" in st.session_state and "results" in st.session_state:
                 with col:
                     fig = donut_chart(scores[metric], metric, colors.get(metric, "skyblue"), size=(2.5, 2.5))
                     st.pyplot(fig)
-                    
+
         else:  # JSON mode
             if eval_data["semantic"]:
                 st.json({
