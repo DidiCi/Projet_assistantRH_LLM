@@ -30,13 +30,13 @@ def main():
         extractor.save_chunks(chunks)
 
         # Vectorstore
-        vs = VectorStoreManager(config, create_new=CREATE_NEW)
+        vs = VectorStoreManager(config, create_new=CREATE_NEW, mistral_key=mistral_key)
         vs.add_chunks(chunks)
     else:
-        vs = VectorStoreManager(config, create_new=CREATE_NEW)
+        vs = VectorStoreManager(config, create_new=CREATE_NEW, mistral_key=mistral_key)
 
     # RAG Query
-    rag = RAGPipeline(config, vs)
+    rag = RAGPipeline(config, vs, mistral_key=mistral_key)
     query = "Quels candidats parle allemand ?"
     ground_truth = ""
 
@@ -48,7 +48,7 @@ def main():
     print("\n--- Answer ---\n",answer)
 
     # Evaluation
-    evaluator = Evaluator(config)
+    evaluator = Evaluator(config, mistral_key=mistral_key)
 
     faithfulness = evaluator.eval_faithfulness(query, answer, results)
     print("\n--- Faithfulness ---\n",faithfulness.content)
