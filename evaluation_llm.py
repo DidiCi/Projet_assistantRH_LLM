@@ -33,12 +33,12 @@ Réponse du système: {predicted}
 
 Réponds uniquement en ce format avec les clés: "exactitude", "completude", "ton", "explication". Exemple:
 
-{
+{{
   "exactitude": True,
   "completude": True,
   "ton": True,
   "explication": "La réponse du système correspond exactement à la réponse attendue et utilise un ton approprié."
-}
+}}
 """)
 
 def evaluate_with_llm(query, expected, predicted):

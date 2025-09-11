@@ -1,5 +1,23 @@
 import json
 
+
+def clean_output(evaluation_str):
+    """
+    Cleans the LLM output to ensure it's valid JSON without extra text and markers.
+    """
+    texte_nettoye = evaluation_str.strip()
+
+    if texte_nettoye.startswith("```json"):
+        texte_nettoye = texte_nettoye[len("```json"):].strip()
+    if texte_nettoye.endswith("```"):
+        texte_nettoye = texte_nettoye[:-3].strip()
+    if texte_nettoye.endswith('"""'):
+        texte_nettoye = texte_nettoye[:-3].strip()
+
+    result = json.loads(texte_nettoye)
+    return result
+
+# Load evaluation results
 with open('evaluation_results.json') as f:
     results = json.load(f)
 
@@ -14,17 +32,15 @@ def calculate_score(evaluation):
     criteria = ["exactitude", "completude", "ton"]
     total = sum(1 if evaluation.get(c, True) else 0 for c in criteria)
     return total / len(criteria)
-print(results)
+
 # Calculate score per answer
 for item in results:
-    print(item["evaluation"])
-    print(item["evaluation"]["exactitude"])
-    item["score"] = calculate_score(item["evaluation"])
+    item["score"] = calculate_score(clean_output(item["evaluation"]))
 
 # Print per-answer scores
 print("Scores per answer:")
 for item in results:
-    print(f"Question: {item.get('question', 'N/A')}, Score: {item['score']}")
+    print(f"Question: {item.get('query', 'N/A')}, Score: {item['score']}")
 
 # Calculate average score
 average_score = sum(item["score"] for item in results) / len(results)
