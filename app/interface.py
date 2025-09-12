@@ -1,5 +1,13 @@
+import sys
+from pathlib import Path
+
+# Add project root to Python path
+project_root = Path(__file__).resolve().parent.parent
+if str(project_root) not in sys.path:
+    sys.path.append(str(project_root))
+    
 import streamlit as st
-from rag_function import run_rag 
+from rag.retriever import RAGRetriever 
 
 st.set_page_config(page_title="Assistant RH RAG", page_icon="💼")
 
@@ -13,12 +21,17 @@ st.markdown(
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
 
+# Initialize RAG pipeline only once
+if "rag_pipeline" not in st.session_state:
+    st.session_state["rag_pipeline"] = RAGRetriever()
+
 # User input
 user_query = st.chat_input("Posez votre question ici...")
 
 if user_query:
     # Run RAG pipeline
-    answer, retrieved_docs = run_rag(user_query)
+    pipeline = st.session_state["rag_pipeline"]
+    answer, retrieved_docs = pipeline.query(user_query)
 
     # Save user and assistant messages to history
     st.session_state["messages"].append({"role": "user", "content": user_query})

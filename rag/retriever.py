@@ -1,7 +1,7 @@
 from langchain_chroma import Chroma
 from langchain_google_genai import GoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain.prompts import PromptTemplate
-from config import CHROMA_DB_PATH
+from rag.config import CHROMA_DB_PATH
 
 class RAGRetriever:
     def __init__(self, collection_name="hr_chunks"):
@@ -36,4 +36,4 @@ class RAGRetriever:
         context = self.build_context_with_sources(retrieved_docs)
         final_prompt = self.qa_prompt.format(context=context, question=question)
         result = self.llm.invoke(final_prompt)
-        return result, context
+        return result, retrieved_docs
