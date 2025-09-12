@@ -1,47 +1,48 @@
 import json
 
 
-def clean_output(evaluation_str):
-    """
-    Cleans the LLM output to ensure it's valid JSON without extra text and markers.
-    """
-    texte_nettoye = evaluation_str.strip()
+class EvaluationScorer:
+    def __init__(self, results_path="evaluation/evaluation_results.json"):
+        self.results_path = results_path
+        self.results = self.load_results()
 
-    if texte_nettoye.startswith("```json"):
-        texte_nettoye = texte_nettoye[len("```json"):].strip()
-    if texte_nettoye.endswith("```"):
-        texte_nettoye = texte_nettoye[:-3].strip()
-    if texte_nettoye.endswith('"""'):
-        texte_nettoye = texte_nettoye[:-3].strip()
+    def load_results(self):
+        with open(self.results_path, "r", encoding="utf-8") as f:
+            return json.load(f)
 
-    result = json.loads(texte_nettoye)
-    return result
+    @staticmethod
+    def clean_output(evaluation_str):
+        texte_nettoye = evaluation_str.strip()
+        for marker in ["```json", "```", '"""']:
+            if texte_nettoye.startswith(marker):
+                texte_nettoye = texte_nettoye[len(marker):].strip()
+            if texte_nettoye.endswith(marker):
+                texte_nettoye = texte_nettoye[:-len(marker)].strip()
+        return json.loads(texte_nettoye)
 
-# Load evaluation results
-with open('evaluation_results.json') as f:
-    results = json.load(f)
+    @staticmethod
+    def calculate_score(evaluation):
+        if isinstance(evaluation, str):
+            evaluation = json.loads(evaluation)
+        criteria = ["exactitude", "completude", "ton"]
+        total = sum(1 if evaluation.get(c, True) else 0 for c in criteria)
+        return total / len(criteria)
 
-# Function to calculate a single score from an evaluation dict
-def calculate_score(evaluation):
-    """
-    Returns a score between 0 and 1 based on exactitude, completude, and ton.
-    """
-    # If evaluation is a string, convert to dict
-    if isinstance(evaluation, str):
-        evaluation = json.loads(evaluation)
-    criteria = ["exactitude", "completude", "ton"]
-    total = sum(1 if evaluation.get(c, True) else 0 for c in criteria)
-    return total / len(criteria)
+    def score_results(self):
+        for item in self.results:
+            item["score"] = self.calculate_score(self.clean_output(item["evaluation"]))
+        return self.results
 
-# Calculate score per answer
-for item in results:
-    item["score"] = calculate_score(clean_output(item["evaluation"]))
+    def print_scores(self):
+        print("📊 Scores per answer:")
+        for item in self.results:
+            print(f"- Question: {item.get('query', 'N/A')}, Score: {item['score']}")
+        avg_score = sum(item["score"] for item in self.results) / len(self.results)
+        print(f"\n⭐ Average score across all answers: {avg_score:.2f}")
+        return avg_score
 
-# Print per-answer scores
-print("Scores per answer:")
-for item in results:
-    print(f"Question: {item.get('query', 'N/A')}, Score: {item['score']}")
 
-# Calculate average score
-average_score = sum(item["score"] for item in results) / len(results)
-print("\nAverage score across all answers:", average_score)
+if __name__ == "__main__":
+    scorer = EvaluationScorer()
+    scorer.score_results()
+    scorer.print_scores()
