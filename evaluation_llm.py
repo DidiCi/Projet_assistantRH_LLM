@@ -7,7 +7,7 @@ from datetime import datetime
 
 # Generate filename with timestamp
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-log_filename = f"logs/evaluation_{timestamp}.log"
+log_filename = f"evaluation/logs/evaluation_{timestamp}.log"
 
 logging.basicConfig(
     filename=log_filename,
@@ -48,7 +48,7 @@ def evaluate_with_llm(query, expected, predicted):
     return llm_judge.invoke(prompt)
 
 # Load evaluation dataset
-with open("evaluation_dataset.json", "r") as f:
+with open("evaluation/evaluation_dataset.json", "r") as f:
     eval_data = json.load(f)
 
 results = []
@@ -68,7 +68,7 @@ for test in eval_data:
     logging.info(f"Evaluation: {evaluation}")
 
 # Write results to JSON
-with open("evaluation_results.json", "w", encoding="utf-8") as f:
+with open("evaluation/evaluation_results.json", "w", encoding="utf-8") as f:
     json.dump(results, f, ensure_ascii=False, indent=2)
     
 

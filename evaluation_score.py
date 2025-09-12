@@ -18,7 +18,7 @@ def clean_output(evaluation_str):
     return result
 
 # Load evaluation results
-with open('evaluation_results.json') as f:
+with open('evaluation/evaluation_results.json') as f:
     results = json.load(f)
 
 # Function to calculate a single score from an evaluation dict
