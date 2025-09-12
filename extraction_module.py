@@ -21,24 +21,34 @@ class CVExtractor:
             format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)}
         )
 
-    def extract_chunks(self):
+    def extract_chunks(self, file_paths=None):
+        """
+        Extract chunks from given file paths (list of PDFs).
+        If no file_paths is given, process everything in folder_path (old behavior).
+        """
         all_chunks = []
-        for filename in os.listdir(self.config.folder_path):
-            if filename.endswith(".pdf"):
-                path = os.path.join(self.config.folder_path, filename)
-                doc = self.converter.convert(path)
-                text = doc.document.export_to_markdown()
-                chunks = self.split_chunks(text)
-                first, last = self._parse_name(filename)
-                
-                for chunk in chunks:
-                    text_content = chunk.page_content if hasattr(chunk, "page_content") else str(chunk)
-                    all_chunks.append({
-                        "text": text_content,
-                        "source": filename,
-                        "first_name": first,
-                        "last_name": last
-                    })
+        if file_paths is None:
+            file_paths = [
+                os.path.join(self.config.folder_path, f)
+                for f in os.listdir(self.config.folder_path)
+                if f.endswith(".pdf")
+            ]
+
+        for path in file_paths:
+            filename = os.path.basename(path)
+            doc = self.converter.convert(path)
+            text = doc.document.export_to_markdown()
+            chunks = self.split_chunks(text)
+            first, last = self._parse_name(filename)
+
+            for chunk in chunks:
+                text_content = chunk.page_content if hasattr(chunk, "page_content") else str(chunk)
+                all_chunks.append({
+                    "text": text_content,
+                    "source": filename,
+                    "first_name": first,
+                    "last_name": last
+                })
         return all_chunks
     
     def split_chunks(self, text):

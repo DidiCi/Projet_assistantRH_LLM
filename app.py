@@ -67,6 +67,8 @@ def load_pipeline(db_mode, mistral_key):
 
     extractor = CVExtractor(config)
     vs = VectorStoreManager(config, create_new=create_new, mistral_key=mistral_key)  # <-- pass key
+    if len(vs.vectorstore.get()) == 0:
+        st.warning("La collection est vide. Ajoutez d’abord des CVs pour indexer.")
     rag = RAGPipeline(config, vs, mistral_key=mistral_key)  # <-- pass key
     evaluator = Evaluator(config, mistral_key=mistral_key)  # <-- pass key
     return config, extractor, vs, rag, evaluator
@@ -76,22 +78,30 @@ config, extractor, vs, rag, evaluator = load_pipeline(db_mode, st.session_state[
 # -------------------------------
 # 3. Upload CVs
 # -------------------------------
+if "uploaded_files_paths" not in st.session_state:
+    st.session_state.uploaded_files_paths = []
+
 st.header("📤 Importer des CVs")
 uploaded_files = st.file_uploader("Déposez des fichiers PDF", type="pdf", accept_multiple_files=True)
 
+new_files = []
 if uploaded_files:
-    if db_mode == "Connecter à une base existante":
-        st.info("Vous ajoutez des CVs à la base existante.")
-    with st.spinner("Extraction en cours..."):
-        for file in uploaded_files:
-            file_path = f"{config.folder_path}/{file.name}"
+    for file in uploaded_files:
+        file_path = f"{config.folder_path}/{file.name}"
+        if file_path not in st.session_state.uploaded_files_paths:
             with open(file_path, "wb") as f:
                 f.write(file.getbuffer())
-        chunks = extractor.extract_chunks()
-        extractor.save_chunks(chunks)
-        vs.add_chunks(chunks)
-    st.success(f"{len(uploaded_files)} CVs ajoutés et indexés ✅")
+            new_files.append(file_path)
+            st.session_state.uploaded_files_paths.append(file_path)
 
+    if new_files:
+        if db_mode == "Connecter à une base existante":
+            st.info("Vous ajoutez des CVs à la base existante.")
+        with st.spinner("Extraction en cours..."):
+            chunks = extractor.extract_chunks(new_files)
+            extractor.save_chunks(chunks)
+            vs.add_chunks(chunks)
+        st.success(f"{len(new_files)} nouveaux CVs ajoutés et indexés ✅")
 # -------------------------------
 # 4. Pose a Question
 # -------------------------------
