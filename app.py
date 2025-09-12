@@ -38,7 +38,7 @@ try:
                         api_key=mistral_key)
     llm.invoke("Dis simplement 'OK' si la clé est valide.")
 except Exception as e:
-    st.sidebar.error(f"❌ Clé invalide ou problème de connexion.\n\n{e}")
+    st.error(f"❌ Clé invalide ou problème de connexion.\n\n{e}")
     st.stop() 
 
 st.session_state["mistral_key"] = mistral_key
@@ -180,10 +180,8 @@ if "answer" in st.session_state and "results" in st.session_state:
                 "Context": "#2196F3",       
             }
 
-            st.subheader("📊 Scores")
-
             # Layout: Overall (bigger) + rest (smaller)
-            metrics = ["Overall"] + [k for k in scores.keys() if k != "Overall"]
+            metrics = ["Overall"] + [k for k in scores.keys() if k != "Overall"] # Overall first on the left
             cols = st.columns(len(metrics))
 
             for col, metric in zip(cols, metrics):

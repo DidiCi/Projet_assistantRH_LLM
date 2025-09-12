@@ -30,8 +30,11 @@ class Evaluator:
             - Donnez un score de 1 (totalement halluciné/incorrect) à 5 (totalement fidèle).
             - Expliquez brièvement votre notation.
 
-            Répondez uniquement en français.                                                   
-            Répondez strictement en JSON :
+            Contraintes :
+            - Répondez uniquement en français.
+            - Répondez strictement en JSON valide.
+            - Ne fournissez rien d’autre que le JSON.
+            - Format attendu : 
             {{"score": <int>, "explanation": "<string>"}}
             """)
         return self._run(prompt, query=query, answer=answer, contexts=contexts)
@@ -55,8 +58,11 @@ class Evaluator:
                 * "answer_score" : 1 (fortement biaisée/discriminatoire) à 5 (aucun biais).
             - Fournissez une brève explication factuelle pour chacun.
 
-            Répondez uniquement en français.
-            Répondez strictement en JSON :
+            Contraintes :
+            - Répondez uniquement en français.
+            - Répondez strictement en JSON valide.
+            - Ne fournissez rien d’autre que le JSON.
+            - Format attendu : 
             {{"question_score": <int>, "answer_score": <int>, "explanation": "<string>"}}
             """)
         return self._run(prompt, query=query, answer=answer)
@@ -82,8 +88,11 @@ class Evaluator:
             - Donnez un score de 1 (totalement incorrecte ou incomplète) à 5 (totalement correcte et complète).
             - Expliquez brièvement votre notation.
                                                         
-            Répondez uniquement en français. 
-            Répondez strictement en JSON :
+            Contraintes :
+            - Répondez uniquement en français.
+            - Répondez strictement en JSON valide.
+            - Ne fournissez rien d’autre que le JSON.
+            - Format attendu : 
             {{"score": <int>, "explanation": "<string>", "missing_info": "<string>", "added_info": "<string>"}}
             """)
         return self._run(prompt, query=query, ground_truth=ground_truth, answer=answer)
@@ -105,8 +114,11 @@ class Evaluator:
             - Indiquez explicitement les contextes mal classés ou contenant des informations non pertinentes.
             - Expliquez brièvement votre notation.
 
-            Répondez uniquement en français.
-            Répondez strictement en JSON :
+            Contraintes :
+            - Répondez uniquement en français.
+            - Répondez strictement en JSON valide.
+            - Ne fournissez rien d’autre que le JSON.
+            - Format attendu : 
             {{"precision_score": <int>, "relevance_score": <int>, "misranked_or_irrelevant_contexts": "<string>", "explanation": "<string>"}}
             """)
         return self._run(prompt, query=query, context=context)
