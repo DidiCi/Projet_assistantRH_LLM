@@ -8,3 +8,16 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Chroma
+chroma_langchain_db/
+
+# Environment variables
+.env
+
+# Logs
+logs/
+*.log
+
+# Files
+*.json
